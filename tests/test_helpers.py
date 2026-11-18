@@ -26,20 +26,34 @@ def test_read_pubkey_strips(tmp_path):
 def test_authorize_key_script_is_idempotent(tmp_path):
     script = helpers.authorize_key_script(KEY)
     for _ in range(2):
-        subprocess.run(["sh", "-c", script], check=True, env={**os.environ, "HOME": str(tmp_path)})
+        subprocess.run(
+            ["sh", "-c", script], check=True, env={**os.environ, "HOME": str(tmp_path)}
+        )
     ak = tmp_path / ".ssh/authorized_keys"
     assert ak.read_text().splitlines().count(KEY) == 1
     assert ak.stat().st_mode & 0o777 == 0o600
     assert (tmp_path / ".ssh").stat().st_mode & 0o777 == 0o700
 
 
-@pytest.mark.parametrize("status,expected", [("Stopped", "stopped"), ("Running", "running")])
+@pytest.mark.parametrize(
+    "status,expected", [("Stopped", "stopped"), ("Running", "running")]
+)
 def test_container_state(status, expected):
-    assert helpers.container_state([{"name": "hermius-maximus", "status": status}], "hermius-maximus") == expected
+    assert (
+        helpers.container_state(
+            [{"name": "hermius-maximus", "status": status}], "hermius-maximus"
+        )
+        == expected
+    )
 
 
 def test_container_state_absent():
-    assert helpers.container_state([{"name": "other", "status": "Running"}], "hermius-maximus") == "absent"
+    assert (
+        helpers.container_state(
+            [{"name": "other", "status": "Running"}], "hermius-maximus"
+        )
+        == "absent"
+    )
     assert helpers.container_state([], "hermius-maximus") == "absent"
 
 
@@ -48,8 +62,10 @@ def _net(addrs):
 
 
 def test_container_ipv4():
-    addrs = [{"family": "inet6", "address": "fe80::1", "scope": "link"},
-             {"family": "inet", "address": "10.1.2.3", "scope": "global"}]
+    addrs = [
+        {"family": "inet6", "address": "fe80::1", "scope": "link"},
+        {"family": "inet", "address": "10.1.2.3", "scope": "global"},
+    ]
     assert helpers.container_ipv4(_net(addrs), "c") == "10.1.2.3"
 
 
@@ -60,7 +76,9 @@ def test_container_ipv4_none_when_no_address():
 
 
 def test_has_device():
-    assert helpers.has_device([{"name": "c", "devices": {"dashboard": {"type": "proxy"}}}], "c", "dashboard")
+    assert helpers.has_device(
+        [{"name": "c", "devices": {"dashboard": {"type": "proxy"}}}], "c", "dashboard"
+    )
     assert not helpers.has_device([{"name": "c", "devices": {}}], "c", "dashboard")
     assert not helpers.has_device([], "c", "dashboard")
 
@@ -70,9 +88,15 @@ def test_proxy_device_matches():
     dev = {"type": "proxy", "listen": listen, "connect": connect}
     cs = [{"name": "c", "devices": {"dashboard": dev}}]
     assert helpers.proxy_device_matches(cs, "c", "dashboard", listen, connect)
-    assert not helpers.proxy_device_matches(cs, "c", "dashboard", "tcp:127.0.0.1:9120", connect)
-    assert not helpers.proxy_device_matches(cs, "c", "dashboard", listen, "tcp:127.0.0.1:9120")
-    assert not helpers.proxy_device_matches([{"name": "c", "devices": {}}], "c", "dashboard", listen, connect)
+    assert not helpers.proxy_device_matches(
+        cs, "c", "dashboard", "tcp:127.0.0.1:9120", connect
+    )
+    assert not helpers.proxy_device_matches(
+        cs, "c", "dashboard", listen, "tcp:127.0.0.1:9120"
+    )
+    assert not helpers.proxy_device_matches(
+        [{"name": "c", "devices": {}}], "c", "dashboard", listen, connect
+    )
     assert not helpers.proxy_device_matches(cs, "c", "other", listen, connect)
 
 
@@ -100,13 +124,18 @@ def test_config_settings_order_and_encoding():
     assert "terminal" in json.loads(d["platform_toolsets.cli"])
     assert "terminal" in json.loads(d["platform_toolsets.api_server"])
     disabled = json.loads(d["plugins.disabled"])
-    assert {"web/keenable", "platforms/telegram", "dashboard_auth/nous"} <= set(disabled)
+    assert {"web/keenable", "platforms/telegram", "dashboard_auth/nous"} <= set(
+        disabled
+    )
     assert "delegation/default" not in disabled
 
 
 def test_dashboard_unit():
     u = helpers.dashboard_unit(9119)
-    assert "ExecStart=%h/.local/bin/hermes dashboard --host 127.0.0.1 --port 9119 --no-open" in u
+    assert (
+        "ExecStart=%h/.local/bin/hermes dashboard --host 127.0.0.1 --port 9119 --no-open"
+        in u
+    )
     assert "RestartPreventExitStatus=78" in u
     assert "WantedBy=default.target" in u
 
@@ -190,7 +219,14 @@ def test_merge_env_command(tmp_path):
 def test_merge_env_command_creates_env(tmp_path):
     env, llama = tmp_path / ".env", tmp_path / ".env.llama"
     llama.write_text("K='new'\n")
-    subprocess.run(["bash", "-c", helpers.merge_env_command(str(env), str(llama), "K").get_raw_value()], check=True)
+    subprocess.run(
+        [
+            "bash",
+            "-c",
+            helpers.merge_env_command(str(env), str(llama), "K").get_raw_value(),
+        ],
+        check=True,
+    )
     assert env.read_text() == "K='new'\n"
 
 
@@ -205,24 +241,46 @@ def test_ensure_keypair(tmp_path):
     assert key.with_name("id_test.pub").read_text() == pub
 
 
-
 def test_port_owner_finds_other():
     for listen in ("tcp:127.0.0.1:9119", "tcp:0.0.0.0:9119", "tcp:localhost:9119"):
-        cs = [{"name": "a", "devices": {"dashboard": {"type": "proxy", "listen": listen}}}]
+        cs = [
+            {"name": "a", "devices": {"dashboard": {"type": "proxy", "listen": listen}}}
+        ]
         assert helpers.port_owner(cs, 9119, "b") == "a"
 
 
 def test_port_owner_finds_profile_device():
-    cs = [{"name": "a", "devices": {}, "expanded_devices": {"p": {"type": "proxy", "listen": "tcp:127.0.0.1:9119"}}}]
+    cs = [
+        {
+            "name": "a",
+            "devices": {},
+            "expanded_devices": {
+                "p": {"type": "proxy", "listen": "tcp:127.0.0.1:9119"}
+            },
+        }
+    ]
     assert helpers.port_owner(cs, 9119, "b") == "a"
 
 
 def test_port_owner_ignores_own_container():
-    cs = [{"name": "a", "devices": {"dashboard": {"type": "proxy", "listen": "tcp:127.0.0.1:9119"}}}]
+    cs = [
+        {
+            "name": "a",
+            "devices": {"dashboard": {"type": "proxy", "listen": "tcp:127.0.0.1:9119"}},
+        }
+    ]
     assert helpers.port_owner(cs, 9119, "a") is None
 
 
 def test_port_owner_none():
-    cs = [{"name": "a", "devices": {"x": {"type": "disk"}, "y": {"type": "proxy", "listen": "tcp:127.0.0.1:19119"}}},
-          {"name": "b", "devices": None}]
+    cs = [
+        {
+            "name": "a",
+            "devices": {
+                "x": {"type": "disk"},
+                "y": {"type": "proxy", "listen": "tcp:127.0.0.1:19119"},
+            },
+        },
+        {"name": "b", "devices": None},
+    ]
     assert helpers.port_owner(cs, 9119, "c") is None
