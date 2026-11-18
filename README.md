@@ -14,6 +14,19 @@ HERMES_VARIANT=hermius-maximus uv run pyinfra inventory.py hermes-deploy.py
 - Add `--dry` to preview the changes. Never add `--diff`: the deploy aborts rather than print the API-key file. Add `--data chat_test=true` to force the chat test.
 - Tests: `uv run pytest` (no LXD needed).
 
+## Toolsets and plugins
+
+Each variant sets these explicitly; stage 2 writes them to `config.yaml` on every run, so edits made in `hermes tools` or the dashboard are reset.
+
+- `ENABLED_PLATFORM_TOOLSETS`: dict of platform → toolset allow-list, written as `platform_toolsets.<platform>` (today `cli` and `api_server`). A platform left out uses Hermes' broad default. Removing a platform from the dict does not delete its existing `config.yaml` entry.
+- `DISABLED_TOOLSETS`: `agent.disabled_toolsets`, removed on every platform, even if a platform list includes them.
+- `PLUGINS_ENABLED`: `plugins.enabled`. Third-party plugins load only when listed here.
+- `PLUGINS_DISABLED`: `plugins.disabled`. Bundled backend and platform plugins load without being enabled, so this list keeps them off; it wins over `PLUGINS_ENABLED`. Hermes has no wildcard. After `hermes update`, list new bundled ones with:
+
+  ```bash
+  cd hermes-agent/plugins && grep -lE '^kind: (backend|platform)' */*/plugin.yaml | xargs -n1 dirname
+  ```
+
 ## Container can't reach the internet
 
 If the LXC cannot connect to the internet, stage 2 fails like this:

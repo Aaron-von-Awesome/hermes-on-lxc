@@ -85,6 +85,12 @@ def test_config_settings_order_and_encoding():
     prov = json.loads(d["providers"])["local-llama"]
     assert prov["models"] == {"ornith15": {"context_length": 262144}}
     assert json.loads(d["agent.max_turns"]) == 90
+    assert json.loads(d["plugins.enabled"]) == ["delegation/default"]
+    assert "terminal" in json.loads(d["platform_toolsets.cli"])
+    assert "terminal" in json.loads(d["platform_toolsets.api_server"])
+    disabled = json.loads(d["plugins.disabled"])
+    assert {"web/keenable", "platforms/telegram", "dashboard_auth/nous"} <= set(disabled)
+    assert "delegation/default" not in disabled
 
 
 def test_dashboard_unit():
