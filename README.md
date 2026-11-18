@@ -13,6 +13,7 @@ HERMES_VARIANT=hermius-maximus uv run pyinfra inventory.py hermes-deploy.py
 - `hermes-deploy.py` asks for the llama.cpp API key, or reads it from `LLAMA_API_KEY`.
 - Add `--dry` to preview the changes. Never add `--diff`: the deploy aborts rather than print the API-key file. Add `--data chat_test=true` to force the chat test.
 - Tests: `uv run pytest` (no LXD needed).
+- If stage 2 stops with an SSH host-key mismatch, clear the stale entry for the container IP: `ssh-keygen -R <container-ip>`.
 
 ## Toolsets and plugins
 

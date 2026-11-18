@@ -13,9 +13,9 @@ from helpers import (
     container_ipv4,
     container_state,
     ensure_keypair,
-    has_device,
     lxc_list,
     port_owner,
+    proxy_device_commands,
     proxy_device_matches,
     read_pubkey,
 )
@@ -139,24 +139,9 @@ server.shell(
 )
 
 if not proxy_device_matches(containers, CONTAINER, PROXY_DEVICE, LISTEN, CONNECT):
-    commands = []
-    if has_device(containers, CONTAINER, PROXY_DEVICE):
-        commands += [
-            StringCommand(
-                "lxc config device remove",
-                QuoteString(CONTAINER),
-                QuoteString(PROXY_DEVICE),
-            ),
-            "&&",
-        ]
-    commands.append(
-        StringCommand(
-            "lxc config device add",
-            QuoteString(CONTAINER),
-            QuoteString(PROXY_DEVICE),
-            "proxy",
-            QuoteString(f"listen={LISTEN}"),
-            QuoteString(f"connect={CONNECT}"),
-        )
+    server.shell(
+        name="Set dashboard proxy device",
+        commands=proxy_device_commands(
+            containers, CONTAINER, PROXY_DEVICE, LISTEN, CONNECT
+        ),
     )
-    server.shell(name="Set dashboard proxy device", commands=commands)

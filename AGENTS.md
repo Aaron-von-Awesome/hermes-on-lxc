@@ -17,7 +17,7 @@ HERMES_VARIANT=<name> uv run pyinfra inventory.py hermes-deploy.py    # stage 2:
 
 ## Tests
 
-- `uv run pytest` (no LXD needed). Single test: `uv run pytest tests/test_helpers.py::test_name`.
+- `uv run pytest` (no LXD needed).
 - `tests/conftest.py` defaults `HERMES_VARIANT=hermius-maximus`.
 - No linter or typechecker is configured; pytest is the only check.
 

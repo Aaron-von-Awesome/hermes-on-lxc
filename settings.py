@@ -1,4 +1,4 @@
-"""Loads deploy/variants/<HERMES_VARIANT>.py into this module, plus KEY_ENV computed from BASE_URL."""
+"""Loads variants/<HERMES_VARIANT>.py into this module, plus KEY_ENV computed from BASE_URL."""
 
 import ast
 import os

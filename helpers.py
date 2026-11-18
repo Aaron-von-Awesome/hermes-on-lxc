@@ -91,6 +91,32 @@ def proxy_device_matches(
     )
 
 
+def proxy_device_commands(
+    containers: list[dict], name: str, device: str, listen: str, connect: str
+) -> list[StringCommand]:
+    # Whole commands only: pyinfra runs each list item as its own shell command.
+    commands: list[StringCommand] = []
+    if has_device(containers, name, device):
+        commands.append(
+            StringCommand(
+                "lxc config device remove",
+                QuoteString(name),
+                QuoteString(device),
+            )
+        )
+    commands.append(
+        StringCommand(
+            "lxc config device add",
+            QuoteString(name),
+            QuoteString(device),
+            "proxy",
+            QuoteString(f"listen={listen}"),
+            QuoteString(f"connect={connect}"),
+        )
+    )
+    return commands
+
+
 def port_owner(containers: list[dict], port: int, exclude: str) -> str | None:
     # Any listen address counts, and profile devices show only in expanded_devices.
     return next(

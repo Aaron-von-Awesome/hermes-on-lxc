@@ -5,6 +5,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
+from pyinfra.api import StringCommand
 
 import helpers
 import settings
@@ -81,6 +82,27 @@ def test_has_device():
     )
     assert not helpers.has_device([{"name": "c", "devices": {}}], "c", "dashboard")
     assert not helpers.has_device([], "c", "dashboard")
+
+
+def test_proxy_device_commands_are_whole_commands():
+    listen = connect = "tcp:127.0.0.1:9119"
+    stale = [
+        {
+            "name": "c",
+            "devices": {"dashboard": {"type": "proxy", "listen": "tcp:127.0.0.1:1"}},
+        }
+    ]
+    cmds = helpers.proxy_device_commands(stale, "c", "dashboard", listen, connect)
+    assert len(cmds) == 2
+    assert all(isinstance(c, StringCommand) for c in cmds)
+    assert "remove" in cmds[0].get_raw_value()
+    assert "add" in cmds[1].get_raw_value()
+    # A missing device only adds; no bare shell operator is ever emitted.
+    cmds = helpers.proxy_device_commands([], "c", "dashboard", listen, connect)
+    assert len(cmds) == 1
+    assert "add" in cmds[0].get_raw_value()
+    for c in cmds:
+        assert c.get_raw_value().strip() not in {"&&", "||", ";", "|"}
 
 
 def test_proxy_device_matches():
