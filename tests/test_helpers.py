@@ -65,7 +65,18 @@ def test_has_device():
     assert not helpers.has_device([], "c", "dashboard")
 
 
-@pytest.mark.parametrize("bad", ["a'b", "a\nb", ""])
+def test_proxy_device_matches():
+    listen = connect = "tcp:127.0.0.1:9119"
+    dev = {"type": "proxy", "listen": listen, "connect": connect}
+    cs = [{"name": "c", "devices": {"dashboard": dev}}]
+    assert helpers.proxy_device_matches(cs, "c", "dashboard", listen, connect)
+    assert not helpers.proxy_device_matches(cs, "c", "dashboard", "tcp:127.0.0.1:9120", connect)
+    assert not helpers.proxy_device_matches(cs, "c", "dashboard", listen, "tcp:127.0.0.1:9120")
+    assert not helpers.proxy_device_matches([{"name": "c", "devices": {}}], "c", "dashboard", listen, connect)
+    assert not helpers.proxy_device_matches(cs, "c", "other", listen, connect)
+
+
+@pytest.mark.parametrize("bad", ["a'b", "a\nb", "a\rb", ""])
 def test_env_line_rejects_quote_and_newline(bad):
     with pytest.raises(ValueError):
         helpers.env_line("KEY", bad)
@@ -117,7 +128,7 @@ def _serve(models, n_ctx):
             self.end_headers()
             self.wfile.write(data)
 
-        def log_message(self, *a):
+        def log_message(self, *args, **kwargs):
             pass
 
     srv = HTTPServer(("127.0.0.1", 0), H)
@@ -141,6 +152,10 @@ def serve():
 
 def test_preflight_ok(serve):
     helpers.preflight(serve(["m"], 100), "m", 100, "k")
+
+
+def test_preflight_trailing_slash(serve):
+    helpers.preflight(serve(["m"], 100) + "/", "m", 100, "k")
 
 
 def test_preflight_model_missing(serve):

@@ -1,4 +1,5 @@
 """Loads deploy/variants/<HERMES_VARIANT>.py into this module, plus KEY_ENV computed from BASE_URL."""
+import ast
 import os
 import re
 import runpy
@@ -14,6 +15,24 @@ def key_env_for(base_url: str) -> str:
     return f"HERMES_CUSTOM_{slug}_API_KEY" if slug else "HERMES_CUSTOM_API_KEY"
 
 
+def _variant_literals(path: Path) -> dict[str, object]:
+    # Read only literals: another variant with a broken import must not break this one.
+    try:
+        tree = ast.parse(path.read_text())
+    except (SyntaxError, ValueError):
+        return {}
+    out = {}
+    for node in tree.body:
+        if (isinstance(node, ast.Assign) and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id in ("CONTAINER", "DASHBOARD_PORT")):
+            try:
+                out[node.targets[0].id] = ast.literal_eval(node.value)
+            except ValueError:
+                pass
+    return out
+
+
 def load_variant(name: str | None, folder: Path) -> dict[str, object]:
     names = sorted(p.stem for p in folder.glob("*.py"))
     if name not in names:
@@ -22,7 +41,7 @@ def load_variant(name: str | None, folder: Path) -> dict[str, object]:
     for other in names:
         if other == name:
             continue
-        theirs = runpy.run_path(str(folder / f"{other}.py"))
+        theirs = _variant_literals(folder / f"{other}.py")
         for key in ("CONTAINER", "DASHBOARD_PORT"):
             if key in values and theirs.get(key) == values[key]:
                 raise RuntimeError(f"{key} {values[key]!r} is also set in {other}.py; each variant needs its own")

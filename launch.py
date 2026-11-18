@@ -8,7 +8,7 @@ from pyinfra.facts.lxd import LxdContainers
 from pyinfra.operations import python, server
 
 from helpers import (authorize_key_script, container_ipv4, container_state, ensure_keypair, has_device, lxc_list,
-                     port_owner, read_pubkey)
+                     port_owner, proxy_device_matches, read_pubkey)
 from settings import CONTAINER, DASHBOARD_PORT, IMAGE, PROXY_DEVICE, PUBKEY_PATH, SSH_KEY_PATH, SSH_USER
 
 KNOWN_HOSTS = os.path.expanduser("~/.ssh/known_hosts")
@@ -17,6 +17,7 @@ pubkey = read_pubkey(PUBKEY_PATH)
 containers = host.get_fact(LxdContainers)
 state = container_state(containers, CONTAINER)
 LISTEN = f"tcp:127.0.0.1:{DASHBOARD_PORT}"
+CONNECT = f"tcp:127.0.0.1:{DASHBOARD_PORT}"
 owner = port_owner(containers, DASHBOARD_PORT, CONTAINER)
 if owner is not None:
     raise RuntimeError(f"Port {DASHBOARD_PORT} is already used by container {owner}; pick another DASHBOARD_PORT")
@@ -92,12 +93,13 @@ server.shell(
     )],
 )
 
-if not has_device(containers, CONTAINER, PROXY_DEVICE):
-    server.shell(
-        name="Add dashboard proxy device",
-        commands=[StringCommand(
-            "lxc config device add", QuoteString(CONTAINER), QuoteString(PROXY_DEVICE), "proxy",
-            QuoteString(f"listen={LISTEN}"),
-            QuoteString(f"connect=tcp:127.0.0.1:{DASHBOARD_PORT}"),
-        )],
-    )
+if not proxy_device_matches(containers, CONTAINER, PROXY_DEVICE, LISTEN, CONNECT):
+    commands = []
+    if has_device(containers, CONTAINER, PROXY_DEVICE):
+        commands += [StringCommand("lxc config device remove", QuoteString(CONTAINER), QuoteString(PROXY_DEVICE)), "&&"]
+    commands.append(StringCommand(
+        "lxc config device add", QuoteString(CONTAINER), QuoteString(PROXY_DEVICE), "proxy",
+        QuoteString(f"listen={LISTEN}"),
+        QuoteString(f"connect={CONNECT}"),
+    ))
+    server.shell(name="Set dashboard proxy device", commands=commands)

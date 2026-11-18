@@ -48,3 +48,10 @@ def test_load_variant_allows_distinct(tmp_path):
     (tmp_path / "lab.py").write_text('CONTAINER = "lab"\nDASHBOARD_PORT = 9119\n')
     (tmp_path / "old.py").write_text('CONTAINER = "old"\nDASHBOARD_PORT = 9120\n')
     assert settings.load_variant("lab", tmp_path)["CONTAINER"] == "lab"
+
+
+def test_load_variant_ignores_broken_other(tmp_path):
+    (tmp_path / "lab.py").write_text('CONTAINER = "lab"\nDASHBOARD_PORT = 9119\n')
+    (tmp_path / "bad_import.py").write_text('import does_not_exist\n')
+    (tmp_path / "bad_syntax.py").write_text('CONTAINER = ')
+    assert settings.load_variant("lab", tmp_path)["CONTAINER"] == "lab"

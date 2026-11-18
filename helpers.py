@@ -62,6 +62,11 @@ def has_device(containers: list[dict], name: str, device: str) -> bool:
     return device in ((_find(containers, name) or {}).get("devices") or {})
 
 
+def proxy_device_matches(containers: list[dict], name: str, device: str, listen: str, connect: str) -> bool:
+    d = ((_find(containers, name) or {}).get("devices") or {}).get(device) or {}
+    return d.get("type") == "proxy" and d.get("listen") == listen and d.get("connect") == connect
+
+
 def port_owner(containers: list[dict], port: int, exclude: str) -> str | None:
     # Any listen address counts, and profile devices show only in expanded_devices.
     return next((c["name"] for c in containers if c["name"] != exclude
@@ -70,8 +75,8 @@ def port_owner(containers: list[dict], port: int, exclude: str) -> str | None:
 
 
 def env_line(key_env: str, api_key: str) -> str:
-    if not api_key or "'" in api_key or "\n" in api_key:
-        raise ValueError("API key is empty or contains a single quote or newline; .env cannot store it safely.")
+    if not api_key or "'" in api_key or "\n" in api_key or "\r" in api_key:
+        raise ValueError("API key is empty or contains a single quote, newline, or carriage return; .env cannot store it safely.")
     # Single quotes: python-dotenv would expand `$` and strip ` #...` in an unquoted value.
     return f"{key_env}='{api_key}'\n"
 
@@ -138,6 +143,7 @@ def _http_json(url: str, api_key: str) -> dict:
 
 
 def preflight(base_url: str, model: str, context_length: int, api_key: str) -> None:
+    base_url = base_url.rstrip("/")
     try:
         models = [m.get("id") for m in _http_json(f"{base_url}/models", api_key).get("data", [])]
     except Exception as e:  # noqa: BLE001 - any failure means "server not usable"
