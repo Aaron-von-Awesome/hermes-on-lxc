@@ -16,7 +16,7 @@ HERMES_VARIANT=hermius-maximus uv run pyinfra inventory.py hermes-deploy.py
 
 ## Toolsets and plugins
 
-Each variant sets these explicitly; stage 2 writes them to `config.yaml` on every run, so edits made in `hermes tools` or the dashboard are reset.
+`defaults.py` sets these for every variant (`from defaults import *`); a variant can reassign one after that line. Stage 2 writes them to `config.yaml` on every run, so edits made in `hermes tools` or the dashboard are reset.
 
 - `ENABLED_PLATFORM_TOOLSETS`: dict of platform → toolset allow-list, written as `platform_toolsets.<platform>` (today `cli` and `api_server`). A platform left out uses Hermes' broad default. Removing a platform from the dict does not delete its existing `config.yaml` entry.
 - `DISABLED_TOOLSETS`: `agent.disabled_toolsets`, removed on every platform, even if a platform list includes them.
