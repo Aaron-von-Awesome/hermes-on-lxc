@@ -1,6 +1,6 @@
 # Hermes on LXC
 
-pyinfra 3.11.1 deploy that builds a Hermes Agent container on an LXD host (Ubuntu LXD snap). Run from this directory on the LXD host.
+pyinfra 3.11.2 deploy that builds a Hermes Agent container on an LXD host (Ubuntu LXD snap). Run from this directory on the LXD host.
 
 ## Deploy
 
