@@ -17,7 +17,7 @@ CONTAINER = "hermius-maximus"
 IMAGE = "ubuntu:26.04"
 SSH_USER = "ubuntu"
 SSH_KEY_PATH = (
-    Path.home() / ".ssh/pyinfra/id_pyinfrava"
+    Path.home() / ".ssh/pyinfra/id_pyinfra"
 )  # no passphrase: pyinfra cannot prompt for one
 PUBKEY_PATH = SSH_KEY_PATH.with_name(SSH_KEY_PATH.name + ".pub")
 
