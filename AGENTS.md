@@ -18,8 +18,8 @@ HERMES_VARIANT=<name> uv run pyinfra inventory.py hermes-deploy.py    # stage 2:
 ## Tests
 
 - `uv run pytest` (no LXD needed).
+- `uv run pyright` typechecks (`[tool.pyright]`).
 - `tests/conftest.py` defaults `HERMES_VARIANT=hermius-maximus`.
-- No linter or typechecker is configured; pytest is the only check.
 
 ## Gotchas
 
@@ -27,6 +27,5 @@ HERMES_VARIANT=<name> uv run pyinfra inventory.py hermes-deploy.py    # stage 2:
 - `--data chat_test=true` forces the chat test; it also auto-runs on a first install.
 - API key comes from the prompt or `LLAMA_API_KEY`; it is rejected if it contains `'` or a newline. It is written to the container's `~/.hermes/.env.llama` (0600) and merged into `.env`, never passed on a command line.
 - Variant files must have unique `CONTAINER` and `DASHBOARD_PORT` across `variants/`; `settings.py` enforces this and names the conflicting file.
-- `PROVIDER_KEY` must not be a built-in provider name (e.g. `llamacpp`).
 - `CONTEXT_LENGTH` must equal llama-server's per-slot `n_ctx`; `preflight()` also checks `/models`.
 - `DASHBOARD_UNIT` is load-bearing: Hermes restarts a user unit with exactly that name after `hermes update`.

@@ -9,7 +9,7 @@ HERMES_VARIANT=hermius-maximus uv run pyinfra inventory.py hermes-deploy.py
 ```
 
 - `HERMES_VARIANT` names a file in `variants/` (without `.py`). For a new variant, copy a file and change `CONTAINER` and `DASHBOARD_PORT` (both must be unique across variants).
-- Stage 1 (`launch.py`) creates/starts the container and opens SSH + dashboard access; stage 2 (`hermes-deploy.py`) installs and configures Hermes over SSH.
+- Stage 1 (`launch.py`) creates/starts the container and opens SSH + dashboard access; stage 2 (`hermes-deploy.py`) installs and configures Hermes over SSH, plus the Helix editor as a classic snap.
 - `hermes-deploy.py` asks for the llama.cpp API key, or reads it from `LLAMA_API_KEY`.
 - Add `--dry` to preview the changes. Never add `--diff`: the deploy aborts rather than print the API-key file. Add `--data chat_test=true` to force the chat test.
 - Tests: `uv run pytest` (no LXD needed).

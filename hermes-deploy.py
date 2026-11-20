@@ -13,6 +13,7 @@ from helpers import (
     config_settings,
     dashboard_unit,
     env_line,
+    flag_is_true,
     merge_env_command,
     preflight,
 )
@@ -176,7 +177,7 @@ server.shell(
 
 
 def chat_test_wanted() -> bool:
-    return (install is not None and install.did_change()) or bool(
+    return (install is not None and install.did_change()) or flag_is_true(
         host.data.get("chat_test")
     )
 

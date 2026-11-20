@@ -37,6 +37,11 @@ def read_pubkey(path: Path) -> str:
         raise FileNotFoundError(f"SSH public key not found: {path}") from e
 
 
+def flag_is_true(value: object) -> bool:
+    # pyinfra --data values are strings; "false" must not count as set.
+    return str(value).strip().lower() in ("1", "true", "yes", "on")
+
+
 def authorize_key_script(pubkey: str) -> str:
     return f"""set -eu
 key={shlex.quote(pubkey)}

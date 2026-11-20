@@ -132,6 +132,16 @@ def test_env_line_keeps_dollar_and_hash():
     assert helpers.env_line("KEY", "ab$c #1") == "KEY='ab$c #1'\n"
 
 
+@pytest.mark.parametrize("value", ["1", "true", "TRUE", "yes", "on", True])
+def test_flag_is_true(value):
+    assert helpers.flag_is_true(value)
+
+
+@pytest.mark.parametrize("value", [None, "", "false", "0", "no", "off", False])
+def test_flag_is_false(value):
+    assert not helpers.flag_is_true(value)
+
+
 def test_config_settings_order_and_encoding():
     s = helpers.config_settings()
     assert [k for k, _ in s[:2]] == ["model.provider", "model.base_url"]
