@@ -48,6 +48,8 @@ def test_hermius_maximus_values():
     assert settings.CONTAINER == "hermius-maximus"
     assert settings.DASHBOARD_PORT == 9119
     assert settings.KEY_ENV == "HERMES_CUSTOM_172_24_1_121_8080_API_KEY"
+    assert settings.PM_EXTRAS == []  # off by default
+    assert settings.CLAUDE_CODE is False
 
 
 @pytest.mark.parametrize(

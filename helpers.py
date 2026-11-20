@@ -198,6 +198,13 @@ def config_settings() -> list[tuple[str, str]]:
         "memory.user_profile_enabled": True,
         "checkpoints.enabled": False,
         "smart_model_routing.enabled": False,
+        # Replaces Hermes' built-in default preset (cloud models) with the variant's own model.
+        "moa.default_preset": "default",
+        "moa.presets.default": {
+            "enabled": s.MOA_ENABLED,
+            "reference_models": [{"provider": s.PROVIDER_KEY, "model": s.MODEL}],
+            "aggregator": {"provider": s.PROVIDER_KEY, "model": s.MODEL},
+        },
     }
     return [(k, v if isinstance(v, str) else json.dumps(v)) for k, v in values.items()]
 

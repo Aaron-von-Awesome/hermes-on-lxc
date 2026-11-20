@@ -150,6 +150,9 @@ def test_config_settings_order_and_encoding():
         disabled
     )
     assert "delegation/default" not in disabled
+    moa = json.loads(d["moa.presets.default"])
+    slot = {"provider": "local-llama", "model": "ornith15"}
+    assert moa == {"enabled": False, "reference_models": [slot], "aggregator": slot}
 
 
 def test_dashboard_unit():

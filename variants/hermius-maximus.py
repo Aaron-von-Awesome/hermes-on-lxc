@@ -1,11 +1,17 @@
-from defaults import *  # noqa: F403  shared toolset and plugin lists
-# Shared lists come from defaults.py. To change one for this variant only, uncomment and edit:
-# ENABLED_PLATFORM_TOOLSETS = {**ENABLED_PLATFORM_TOOLSETS, "api_server": ["clarify", "file", "memory"]}
-# DISABLED_TOOLSETS = [*DISABLED_TOOLSETS, "kanban"]
-# PLUGINS_ENABLED = [*PLUGINS_ENABLED, "deltachat-platform"]
-# PLUGINS_DISABLED = [p for p in PLUGINS_DISABLED if p != "web/searxng"]
-
+from defaults import *
 from pathlib import Path
+
+# #################################################################################################
+# Shared settings come from defaults.py. To change one for this variant only, uncomment and edit:
+# #################################################################################################
+#
+# CLAUDE_CODE = True
+# DISABLED_TOOLSETS = [*DISABLED_TOOLSETS, "kanban"]
+# ENABLED_PLATFORM_TOOLSETS = {**ENABLED_PLATFORM_TOOLSETS, "api_server": ["clarify", "file", "memory"]}
+# MOA_ENABLED = True
+# PLUGINS_DISABLED = [p for p in PLUGINS_DISABLED if p != "web/searxng"]
+# PLUGINS_ENABLED = [*PLUGINS_ENABLED, "deltachat-platform"]
+# PM_EXTRAS = ["anthropic"]
 
 CONTAINER = "hermius-maximus"
 IMAGE = "ubuntu:26.04"

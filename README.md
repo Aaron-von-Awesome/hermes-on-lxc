@@ -15,7 +15,7 @@ HERMES_VARIANT=hermius-maximus uv run pyinfra inventory.py hermes-deploy.py
 - Tests: `uv run pytest` (no LXD needed).
 - If stage 2 stops with an SSH host-key mismatch, clear the stale entry for the container IP: `ssh-keygen -R <container-ip>`.
 
-## Toolsets and plugins
+## Toolsets, plugins and extras
 
 `defaults.py` sets these for every variant (`from defaults import *`); a variant can reassign one after that line. Stage 2 writes them to `config.yaml` on every run, so edits made in `hermes tools` or the dashboard are reset.
 
@@ -27,6 +27,9 @@ HERMES_VARIANT=hermius-maximus uv run pyinfra inventory.py hermes-deploy.py
   ```bash
   cd hermes-agent/plugins && grep -lE '^kind: (backend|platform)' */*/plugin.yaml | xargs -n1 dirname
   ```
+- `PM_EXTRAS`: optional Hermes Python extras, installed with `hermes pm install --extra <name>`. Empty by default. Extras are install-wide, so every profile in the container gets them; `--profile` does not narrow that. Example: `PM_EXTRAS = ["anthropic"]` for a profile that uses the Anthropic provider. Removing a name does not uninstall it.
+- `MOA_ENABLED`: Mixture of Agents. Stage 2 points the `default` preset at the variant's `MODEL` (advisor and aggregator), replacing Hermes' cloud-model default. `False` (default) turns the advisors off, so selecting the preset runs `MODEL` alone.
+- `CLAUDE_CODE`: `True` runs the Claude Code installer (`CLAUDE_CODE_INSTALL_URL`) once, as `SSH_USER`, into `~/.local/bin/claude`. Off by default. Log in afterwards in the container with `claude`; turning it off does not uninstall it.
 
 ## Container can't reach the internet
 

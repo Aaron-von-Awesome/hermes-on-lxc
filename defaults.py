@@ -1,4 +1,4 @@
-"""Toolset and plugin lists shared by every variant. A variant may reassign any of them after `from defaults import *`."""
+"""Settings shared by every variant. A variant may reassign any of them after `from defaults import *`."""
 
 # One allow-list per surface (platform_toolsets.<name>); a surface left out uses Hermes' broad default.
 ENABLED_PLATFORM_TOOLSETS = {
@@ -118,3 +118,13 @@ PLUGINS_DISABLED = [
     "web/tavily",
     "web/xai",
 ]
+
+# Optional Hermes Python extras (`hermes pm install --extra`). Install-wide: every profile gets them.
+PM_EXTRAS = []
+
+# Install the Claude Code CLI (native installer, to ~/.local/bin/claude). Skipped when already there.
+CLAUDE_CODE = False
+CLAUDE_CODE_INSTALL_URL = "https://claude.ai/install.sh"
+
+# Mixture of Agents "default" preset, set to the variant's MODEL. False: the aggregator acts alone, no advisors.
+MOA_ENABLED = False

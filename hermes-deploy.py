@@ -7,7 +7,7 @@ from getpass import getpass
 from pyinfra import host
 from pyinfra.api import QuoteString, StringCommand
 from pyinfra.facts.files import File
-from pyinfra.operations import files, server, systemd
+from pyinfra.operations import files, server, snap, systemd
 
 from helpers import (
     config_settings,
@@ -18,12 +18,15 @@ from helpers import (
 )
 from settings import (
     BASE_URL,
+    CLAUDE_CODE,
+    CLAUDE_CODE_INSTALL_URL,
     CONTEXT_LENGTH,
     DASHBOARD_PORT,
     DASHBOARD_UNIT,
     INSTALL_URL,
     KEY_ENV,
     MODEL,
+    PM_EXTRAS,
     SSH_USER,
 )
 
@@ -40,6 +43,13 @@ api_key = (os.environ.get("LLAMA_API_KEY") or getpass("llama.cpp API key: ")).st
 line = env_line(KEY_ENV, api_key)
 preflight(BASE_URL, MODEL, CONTEXT_LENGTH, api_key)
 
+snap.package(
+    name="Install Helix Editor Snap",
+    packages=["helix"],
+    classic=True,
+    _sudo=True,
+)
+
 files.directory(name="Create ~/.hermes", path=f"{HOME}/.hermes", mode="700")
 # Seeds only the essential hermes-agent skill instead of all bundled skills.
 files.file(name="Skip bundled skills", path=f"{HOME}/.hermes/.no-bundled-skills")
@@ -54,6 +64,26 @@ if host.get_fact(File, path=HERMES) is None:
                 QuoteString(INSTALL_URL),
                 "| bash -s -- --skip-setup && test -x",
                 QuoteString(HERMES),
+            )
+        ],
+    )
+
+if CLAUDE_CODE and host.get_fact(File, path=f"{HOME}/.local/bin/claude") is None:
+    server.shell(
+        name="Run the Claude Code installer",
+        commands=[
+            StringCommand("curl -fsSL", QuoteString(CLAUDE_CODE_INSTALL_URL), "| bash")
+        ],
+    )
+
+if PM_EXTRAS:
+    server.shell(
+        name="Install Hermes Python extras",
+        commands=[
+            StringCommand(
+                HERMES,
+                "pm install",
+                *[a for e in PM_EXTRAS for a in ("--extra", QuoteString(e))],
             )
         ],
     )
